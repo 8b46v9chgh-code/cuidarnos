@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import Link from "next/link";
 import { obtenerFamilia } from "@/lib/familia";
-import { PARENTESCO, edad } from "@/lib/textos";
+import { PARENTESCO, agruparFamilia, edad } from "@/lib/textos";
 import { cerrarSesion } from "./acciones";
 
 export default function Home() {
@@ -34,14 +34,21 @@ async function MiFamilia() {
   return (
     <div className="mt-4 flex flex-col gap-4">
       <p className="text-lg">Hola, {yo?.nombre ?? ""} 👋</p>
-      <ul className="flex flex-col gap-2">
-        {familia.integrantes.map((i) => (
-          <li key={i.id} className="rounded-xl bg-[#F3F6F4] px-4 py-3">
-            <span className="font-bold">{i.nombre}</span>
-            <span className="text-zinc-600"> · {PARENTESCO[i.parentesco]} · {edad(i.fecha_nacimiento)}</span>
-          </li>
-        ))}
-      </ul>
+      {agruparFamilia(familia.integrantes).map((grupo) => (
+        <section key={grupo.rotulo} className="flex flex-col gap-2">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-[#4F5D5A]">{grupo.rotulo}</h2>
+          <ul className="flex flex-col gap-2">
+            {grupo.integrantes.map((i) => (
+              <li key={i.id} className="rounded-xl bg-[#F3F6F4] px-4 py-3">
+                <span className="font-bold">{i.nombre}</span>
+                <span className="text-zinc-600">
+                  {i.parentesco !== "yo" && ` · ${PARENTESCO[i.parentesco]}`} · {edad(i.fecha_nacimiento)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
       <Link
         href="/familia"
         className="flex h-12 items-center justify-center rounded-xl bg-[#1F6B63] font-bold text-white"

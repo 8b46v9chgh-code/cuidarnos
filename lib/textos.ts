@@ -11,3 +11,23 @@ export function edad(fecha: string) {
   if (meses < 24) return `${Math.max(meses, 0)} ${meses === 1 ? "mes" : "meses"}`;
   return `${Math.floor(meses / 12)} años`;
 }
+
+// Agrupa a la familia con rótulo y en este orden: vos, pareja, hijos, padres.
+// Dentro de cada grupo, de mayor a menor.
+type ConParentesco = { parentesco: keyof typeof PARENTESCO; fecha_nacimiento: string };
+
+const GRUPOS = [
+  { rotulo: "Vos", parentescos: ["yo"] },
+  { rotulo: "Pareja", parentescos: ["pareja"] },
+  { rotulo: "Hijos", parentescos: ["hijo"] },
+  { rotulo: "Padres", parentescos: ["madre", "padre"] },
+] as const;
+
+export function agruparFamilia<T extends ConParentesco>(integrantes: T[]) {
+  return GRUPOS.map((g) => ({
+    rotulo: g.rotulo,
+    integrantes: integrantes
+      .filter((i) => (g.parentescos as readonly string[]).includes(i.parentesco))
+      .sort((a, b) => a.fecha_nacimiento.localeCompare(b.fecha_nacimiento)),
+  })).filter((g) => g.integrantes.length > 0);
+}
