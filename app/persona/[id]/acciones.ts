@@ -36,15 +36,19 @@ export async function guardarControl(_anterior: EstadoControl, formData: FormDat
   });
   if (error) return fallar("No pudimos guardar. Probá de nuevo en un rato.");
 
-  redirect("/registrar?listo=1");
+  redirect(`/persona/${integranteId}?listo=1`);
 }
 
 export async function borrarControl(formData: FormData) {
   const id = texto(formData, "id");
   if (!id) return;
   const supabase = await createClient();
-  const { data } = await supabase.from("controles_realizados").select("informe_path").eq("id", id).maybeSingle();
+  const { data } = await supabase
+    .from("controles_realizados")
+    .select("informe_path, integrante_id")
+    .eq("id", id)
+    .maybeSingle();
   await supabase.from("controles_realizados").delete().eq("id", id);
   if (data?.informe_path) await supabase.storage.from("informes").remove([data.informe_path]);
-  redirect("/registrar");
+  redirect(data ? `/persona/${data.integrante_id}` : "/");
 }
