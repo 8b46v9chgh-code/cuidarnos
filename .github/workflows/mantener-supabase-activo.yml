@@ -1,11 +1,13 @@
-# Una vez por día le hace una consulta de solo lectura a Supabase,
+# Tres veces por día le hace una consulta de solo lectura a Supabase,
 # para que el proyecto del plan Free no se pause por falta de uso (7 días).
 # No cambia ningún dato: por la RLS, la respuesta es una lista vacía.
 name: Mantener Supabase activo
 
 on:
   schedule:
-    - cron: "0 12 * * *" # todos los días a las 12:00 UTC (9:00 en Argentina)
+    # 3 veces por día: 8:17, 14:17 y 20:17 en Argentina (11:17, 17:17 y 23:17 UTC).
+    # Minuto 17 y no 00 a propósito: a la hora en punto GitHub demora horas.
+    - cron: "17 11,17,23 * * *"
   workflow_dispatch: # permite correrlo a mano desde la pestaña Actions
 
 jobs:
