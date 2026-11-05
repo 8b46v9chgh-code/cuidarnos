@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import Link from "next/link";
 import { obtenerFamilia } from "@/lib/familia";
-import { PARENTESCO, agruparFamilia, edad } from "@/lib/textos";
+import { agruparFamilia, edad, parentescoVisible } from "@/lib/textos";
 import { cerrarSesion } from "./acciones";
 
 export default function Home() {
@@ -42,7 +42,7 @@ async function MiFamilia() {
               <li key={i.id} className="rounded-xl bg-[#F3F6F4] px-4 py-3">
                 <span className="font-bold">{i.nombre}</span>
                 <span className="text-zinc-600">
-                  {i.parentesco !== "yo" && ` · ${PARENTESCO[i.parentesco]}`} · {edad(i.fecha_nacimiento)}
+                  {i.parentesco !== "yo" && ` · ${parentescoVisible(i)}`} · {edad(i.fecha_nacimiento)}
                 </span>
               </li>
             ))}

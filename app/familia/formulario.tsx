@@ -26,14 +26,31 @@ export function FormularioIntegrante({ integrante }: { integrante?: Integrante }
         <input name="nombre" required maxLength={60} defaultValue={integrante?.nombre} className={campo} />
       </label>
 
-      <fieldset className="flex flex-col gap-2">
+      <fieldset className="group flex flex-col gap-2">
         <legend className="text-sm font-semibold">¿Quién es?</legend>
         <div className="flex flex-wrap gap-2">
-          <Opcion name="parentesco" value="pareja" texto="Pareja" actual={integrante?.parentesco} required />
-          <Opcion name="parentesco" value="hijo" texto="Hijo/a" actual={integrante?.parentesco} required />
-          <Opcion name="parentesco" value="madre" texto="Madre" actual={integrante?.parentesco} required />
-          <Opcion name="parentesco" value="padre" texto="Padre" actual={integrante?.parentesco} required />
+          {OPCIONES_PARENTESCO.map(([valor, rotulo]) => (
+            <Opcion
+              key={valor}
+              name="parentesco"
+              value={valor}
+              texto={rotulo}
+              actual={integrante?.parentesco}
+              required
+            />
+          ))}
         </div>
+        {/* Se muestra solo si está elegido "Otro" (lo resuelve el CSS, sin estado). */}
+        <label className="mt-2 hidden flex-col gap-1 text-sm font-semibold group-has-[input[value=otro]:checked]:flex">
+          ¿Quién es? (opcional)
+          <input
+            name="parentesco_detalle"
+            maxLength={30}
+            placeholder="Por ejemplo: abuela, hermano, tía"
+            defaultValue={integrante?.parentesco_detalle ?? ""}
+            className={campo}
+          />
+        </label>
       </fieldset>
 
       <label className={etiqueta}>
@@ -90,7 +107,21 @@ export function FormularioIntegrante({ integrante }: { integrante?: Integrante }
   );
 }
 
-function Opcion(props: { name: string; value: string; texto: string; actual?: string; required?: boolean }) {
+const OPCIONES_PARENTESCO = [
+  ["pareja", "Pareja"],
+  ["hijo", "Hijo/a"],
+  ["madre", "Madre"],
+  ["padre", "Padre"],
+  ["otro", "Otro"],
+] as const;
+
+function Opcion(props: {
+  name: string;
+  value: string;
+  texto: string;
+  actual?: string;
+  required?: boolean;
+}) {
   return (
     <label className="cursor-pointer">
       <input

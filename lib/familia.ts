@@ -7,7 +7,8 @@ export type Integrante = {
   nombre: string;
   fecha_nacimiento: string;
   sexo: "F" | "M";
-  parentesco: "yo" | "pareja" | "hijo" | "padre" | "madre";
+  parentesco: "yo" | "pareja" | "hijo" | "padre" | "madre" | "otro";
+  parentesco_detalle: string | null;
   a_cargo: boolean;
   es_administrador: boolean;
 };
@@ -17,7 +18,7 @@ export async function obtenerFamilia() {
   const { data, error } = await supabase
     .from("familias")
     .select(
-      "id, nombre, integrantes (id, nombre, fecha_nacimiento, sexo, parentesco, a_cargo, es_administrador)",
+      "id, nombre, integrantes (id, nombre, fecha_nacimiento, sexo, parentesco, parentesco_detalle, a_cargo, es_administrador)",
     )
     .maybeSingle();
 

@@ -9,7 +9,7 @@ import { texto, validarBasicos } from "@/lib/validacion";
 
 export type EstadoIntegrante = { error: string | null };
 
-const PARENTESCOS = ["pareja", "hijo", "padre", "madre"];
+const PARENTESCOS = ["pareja", "hijo", "padre", "madre", "otro"];
 
 export async function guardarIntegrante(
   _anterior: EstadoIntegrante,
@@ -21,6 +21,10 @@ export async function guardarIntegrante(
   const parentesco = texto(formData, "parentesco");
   if (!PARENTESCOS.includes(parentesco)) return { error: "Elegí el parentesco." };
 
+  // Aclaración en texto libre, solo para "Otro" (abuela, hermano, tía...).
+  const detalle = parentesco === "otro" ? texto(formData, "parentesco_detalle") : "";
+  if (detalle.length > 30) return { error: "La aclaración de quién es puede tener hasta 30 letras." };
+
   const familia = await obtenerFamilia();
   if (!familia) redirect("/registro");
 
@@ -29,6 +33,7 @@ export async function guardarIntegrante(
     fecha_nacimiento: basicos.fechaNacimiento,
     sexo: basicos.sexo,
     parentesco,
+    parentesco_detalle: detalle || null,
     a_cargo: formData.get("a_cargo") === "on",
   };
 

@@ -1,6 +1,19 @@
 // Textos y cálculos que usan varias pantallas.
 
-export const PARENTESCO = { yo: "vos", pareja: "pareja", hijo: "hijo/a", padre: "padre", madre: "madre" } as const;
+export const PARENTESCO = {
+  yo: "vos",
+  pareja: "pareja",
+  hijo: "hijo/a",
+  padre: "padre",
+  madre: "madre",
+  otro: "otro",
+} as const;
+
+// Cómo se muestra el parentesco: si es "otro" y tiene aclaración, la aclaración ("abuela").
+export function parentescoVisible(i: { parentesco: keyof typeof PARENTESCO; parentesco_detalle?: string | null }) {
+  if (i.parentesco === "otro" && i.parentesco_detalle) return i.parentesco_detalle;
+  return PARENTESCO[i.parentesco];
+}
 
 // Edad en años (o en meses para menores de 2).
 export function edad(fecha: string) {
@@ -12,7 +25,7 @@ export function edad(fecha: string) {
   return `${Math.floor(meses / 12)} años`;
 }
 
-// Agrupa a la familia con rótulo y en este orden: vos, pareja, hijos, padres.
+// Agrupa a la familia con rótulo y en este orden: vos, pareja, hijos, padres, otros.
 // Dentro de cada grupo, de mayor a menor.
 type ConParentesco = { parentesco: keyof typeof PARENTESCO; fecha_nacimiento: string };
 
@@ -21,6 +34,7 @@ const GRUPOS = [
   { rotulo: "Pareja", parentescos: ["pareja"] },
   { rotulo: "Hijos", parentescos: ["hijo"] },
   { rotulo: "Padres", parentescos: ["madre", "padre"] },
+  { rotulo: "Otros", parentescos: ["otro"] },
 ] as const;
 
 export function agruparFamilia<T extends ConParentesco>(integrantes: T[]) {

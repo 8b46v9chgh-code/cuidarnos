@@ -4,7 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { obtenerFamilia } from "@/lib/familia";
-import { PARENTESCO, agruparFamilia, edad } from "@/lib/textos";
+import { agruparFamilia, edad, parentescoVisible } from "@/lib/textos";
 import { FormularioIntegrante } from "./formulario";
 import { BotonBorrar } from "./boton-borrar";
 
@@ -45,7 +45,7 @@ async function Contenido({ searchParams }: { searchParams: PageProps<"/familia">
                 <div className="flex-1">
                   <p className="font-bold">{i.nombre}</p>
                   <p className="text-sm text-zinc-600">
-                    {i.parentesco !== "yo" && `${PARENTESCO[i.parentesco]} · `}{edad(i.fecha_nacimiento)}
+                    {i.parentesco !== "yo" && `${parentescoVisible(i)} · `}{edad(i.fecha_nacimiento)}
                     {!i.es_administrador && (i.a_cargo ? " · a tu cargo" : " · no está a tu cargo")}
                   </p>
                 </div>
