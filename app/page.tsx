@@ -55,6 +55,12 @@ async function MiFamilia() {
       >
         Editar mi familia
       </Link>
+      <Link
+        href="/registrar"
+        className="flex h-12 items-center justify-center rounded-xl bg-[#1F6B63] font-bold text-white"
+      >
+        Ya me lo hice
+      </Link>
       <form action={cerrarSesion}>
         <button
           type="submit"
