@@ -3,7 +3,9 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
+import Link from "next/link";
 import { obtenerFamilia } from "@/lib/familia";
+import { PARENTESCO, edad } from "@/lib/textos";
 import { cerrarSesion } from "./acciones";
 
 export default function Home() {
@@ -40,6 +42,12 @@ async function MiFamilia() {
           </li>
         ))}
       </ul>
+      <Link
+        href="/familia"
+        className="flex h-12 items-center justify-center rounded-xl bg-[#1F6B63] font-bold text-white"
+      >
+        Editar mi familia
+      </Link>
       <form action={cerrarSesion}>
         <button
           type="submit"
@@ -50,16 +58,4 @@ async function MiFamilia() {
       </form>
     </div>
   );
-}
-
-const PARENTESCO = { yo: "vos", pareja: "pareja", hijo: "hijo/a", padre: "padre", madre: "madre" } as const;
-
-// Edad en años (o en meses para menores de 2).
-function edad(fecha: string) {
-  const nac = new Date(`${fecha}T00:00:00`);
-  const hoy = new Date();
-  let meses = (hoy.getFullYear() - nac.getFullYear()) * 12 + hoy.getMonth() - nac.getMonth();
-  if (hoy.getDate() < nac.getDate()) meses--;
-  if (meses < 24) return `${Math.max(meses, 0)} ${meses === 1 ? "mes" : "meses"}`;
-  return `${Math.floor(meses / 12)} años`;
 }

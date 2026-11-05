@@ -3,6 +3,7 @@
 // Guarda el registro: crea la familia y al administrador como primer integrante ("yo").
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { texto as leer, validarBasicos } from "@/lib/validacion";
 
 export type EstadoRegistro = { error: string | null };
 
@@ -50,30 +51,25 @@ export async function registrarse(
     return { error: "No pudimos guardar tus datos. Probá de nuevo en un rato." };
   }
 
-  redirect("/");
+  // Siguiente paso: sumar a la familia.
+  redirect("/familia");
 }
 
 // Revisa lo que mandó el formulario. Repite las reglas de la base para dar mensajes claros.
 function leerFormulario(f: FormData) {
-  const texto = (k: string) => String(f.get(k) ?? "").trim();
+  const basicos = validarBasicos(f, "vos");
+  if ("error" in basicos) return basicos;
+
   const numero = (k: string) => {
-    const v = texto(k).replace(",", ".");
+    const v = leer(f, k).replace(",", ".");
     return v === "" ? null : Number(v);
   };
-
-  const nombre = texto("nombre");
-  const fechaNacimiento = texto("fecha_nacimiento");
-  const sexo = texto("sexo");
   const peso = numero("peso_kg");
   const altura = numero("altura_cm");
   const cintura = numero("cintura_cm");
-  const tabaco = texto("tabaco") || null;
-  const actividad = texto("actividad") || null;
+  const tabaco = leer(f, "tabaco") || null;
+  const actividad = leer(f, "actividad") || null;
 
-  if (nombre.length < 1 || nombre.length > 60) return { error: "Poné tu nombre (hasta 60 letras)." };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaNacimiento) || fechaNacimiento < "1900-01-01" || new Date(fechaNacimiento) > new Date())
-    return { error: "Revisá la fecha de nacimiento." };
-  if (sexo !== "F" && sexo !== "M") return { error: "Elegí el sexo." };
   if (peso !== null && !(peso > 0 && peso < 400)) return { error: "Revisá el peso (en kg)." };
   if (altura !== null && !(altura > 30 && altura < 250)) return { error: "Revisá la altura (en cm)." };
   if (cintura !== null && !(cintura > 20 && cintura < 250)) return { error: "Revisá la cintura (en cm)." };
@@ -81,15 +77,5 @@ function leerFormulario(f: FormData) {
   if (actividad && !["poca", "moderada", "mucha"].includes(actividad))
     return { error: "Revisá la actividad física." };
 
-  return {
-    nombre,
-    fechaNacimiento,
-    sexo,
-    peso,
-    altura,
-    cintura,
-    tabaco,
-    actividad,
-    aceptaAvisos: f.get("acepta_avisos") === "on",
-  };
+  return { ...basicos, peso, altura, cintura, tabaco, actividad, aceptaAvisos: f.get("acepta_avisos") === "on" };
 }
