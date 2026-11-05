@@ -1,8 +1,9 @@
-// Página de inicio (por ahora solo confirma que la sesión anda).
+// Página de inicio. Por ahora muestra quiénes están en la familia.
 // El proxy ya garantiza que acá llega solo quien inició sesión.
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { obtenerFamilia } from "@/lib/familia";
 import { cerrarSesion } from "./acciones";
 
 export default function Home() {
@@ -12,26 +13,33 @@ export default function Home() {
         <h1 className="text-2xl font-extrabold text-[#1F6B63]">Cuidarnos</h1>
         {/* Suspense: la parte que lee la sesión espera sin frenar el resto de la página. */}
         <Suspense fallback={<p className="mt-4">Cargando…</p>}>
-          <Saludo />
+          <MiFamilia />
         </Suspense>
       </div>
     </main>
   );
 }
 
-async function Saludo() {
+async function MiFamilia() {
   // Le avisa a Next que esta parte depende de quién entra y se arma en cada pedido.
-  // Sin esto, Next intenta prepararla de antemano y se queja del reloj que usa Supabase.
   await connection();
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const email = typeof data?.claims?.email === "string" ? data.claims.email : "";
+  const familia = await obtenerFamilia();
+  // Primera vez: todavía no completó sus datos.
+  if (!familia) redirect("/registro");
+
+  const yo = familia.integrantes.find((i) => i.es_administrador);
 
   return (
     <div className="mt-4 flex flex-col gap-4">
-      <p>
-        Entraste como <strong>{email}</strong>.
-      </p>
+      <p className="text-lg">Hola, {yo?.nombre ?? ""} 👋</p>
+      <ul className="flex flex-col gap-2">
+        {familia.integrantes.map((i) => (
+          <li key={i.id} className="rounded-xl bg-[#F3F6F4] px-4 py-3">
+            <span className="font-bold">{i.nombre}</span>
+            <span className="text-zinc-600"> · {PARENTESCO[i.parentesco]} · {edad(i.fecha_nacimiento)}</span>
+          </li>
+        ))}
+      </ul>
       <form action={cerrarSesion}>
         <button
           type="submit"
@@ -42,4 +50,16 @@ async function Saludo() {
       </form>
     </div>
   );
+}
+
+const PARENTESCO = { yo: "vos", pareja: "pareja", hijo: "hijo/a", padre: "padre", madre: "madre" } as const;
+
+// Edad en años (o en meses para menores de 2).
+function edad(fecha: string) {
+  const nac = new Date(`${fecha}T00:00:00`);
+  const hoy = new Date();
+  let meses = (hoy.getFullYear() - nac.getFullYear()) * 12 + hoy.getMonth() - nac.getMonth();
+  if (hoy.getDate() < nac.getDate()) meses--;
+  if (meses < 24) return `${Math.max(meses, 0)} ${meses === 1 ? "mes" : "meses"}`;
+  return `${Math.floor(meses / 12)} años`;
 }
