@@ -1,6 +1,7 @@
 // Página de inicio (por ahora solo confirma que la sesión anda).
 // El proxy ya garantiza que acá llega solo quien inició sesión.
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { cerrarSesion } from "./acciones";
 
@@ -19,6 +20,9 @@ export default function Home() {
 }
 
 async function Saludo() {
+  // Le avisa a Next que esta parte depende de quién entra y se arma en cada pedido.
+  // Sin esto, Next intenta prepararla de antemano y se queja del reloj que usa Supabase.
+  await connection();
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const email = typeof data?.claims?.email === "string" ? data.claims.email : "";
