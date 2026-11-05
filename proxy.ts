@@ -4,7 +4,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const RUTAS_PUBLICAS = ["/entrar"];
+// /auth/confirmar tiene que ser pública: ahí llega quien todavía no tiene sesión.
+const RUTAS_PUBLICAS = ["/entrar", "/auth/confirmar"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -38,7 +39,7 @@ export async function proxy(request: NextRequest) {
   if (!conSesion && !esPublica) {
     return redirigir(request, "/entrar", response);
   }
-  if (conSesion && esPublica) {
+  if (conSesion && ruta === "/entrar") {
     return redirigir(request, "/", response);
   }
   return response;
