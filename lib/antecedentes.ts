@@ -130,7 +130,13 @@ export type AntecedenteVisto = Antecedente & {
 // - si es hijo/a del administrador, los cargados para "yo" o "pareja"
 //   (el padre del administrador es el abuelo del hijo: 2do grado).
 // Lo que queda a 3er grado o más (o parentesco "otro") no se usa para reglas.
-export function antecedentesDe(persona: Persona, integrantes: Persona[], antecedentes: Antecedente[]): AntecedenteVisto[] {
+type PersonaMinima = Pick<Persona, "id" | "parentesco" | "sexo">;
+
+export function antecedentesDe(
+  persona: PersonaMinima,
+  integrantes: PersonaMinima[],
+  antecedentes: Antecedente[],
+): AntecedenteVisto[] {
   const vistos: AntecedenteVisto[] = [];
 
   for (const a of antecedentes) {

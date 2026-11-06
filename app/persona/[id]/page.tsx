@@ -9,6 +9,11 @@ import { calcularSemaforo, edadEnMeses, fechaCorta, hoyAR, type ItemSemaforo } f
 import { edad, parentescoVisible } from "@/lib/textos";
 import { YaMeLoHice } from "./ya-me-lo-hice";
 import { BotonBorrarControl } from "./boton-borrar";
+import { obtenerAntecedentes } from "@/lib/antecedentes-lectura";
+import { antecedentesDe, type Antecedente } from "@/lib/antecedentes";
+import { describirAntecedente, parentescoDesdeHijo } from "@/lib/antecedentes-textos";
+import { FormularioAntecedente } from "./antecedentes-formulario";
+import { BotonBorrarAntecedente } from "./boton-borrar-antecedente";
 
 export default function PersonaPage({ params, searchParams }: PageProps<"/persona/[id]">) {
   return (
@@ -34,12 +39,13 @@ async function Ficha({
   searchParams: PageProps<"/persona/[id]">["searchParams"];
 }) {
   await connection();
-  const [{ id }, { listo }, familia, reglas, controles] = await Promise.all([
+  const [{ id }, { listo }, familia, reglas, controles, antecedentes] = await Promise.all([
     params,
     searchParams,
     obtenerFamilia(),
     obtenerReglas(),
     obtenerControlesRealizados(),
+    obtenerAntecedentes(),
   ]);
   if (!familia) redirect("/registro");
   const persona = familia.integrantes.find((i) => i.id === id);
@@ -78,7 +84,63 @@ async function Ficha({
           <Tarjeta key={item.regla.id} item={item} quien={quien} familiaId={familia.id} integranteId={id} hoy={hoy} />
         ))}
       </ul>
+
+      <Antecedentes
+        persona={persona}
+        propios={antecedentes.filter((a) => a.integrante_id === id)}
+        heredados={antecedentesDe(persona, familia.integrantes, antecedentes).filter((a) => a.integrante_id !== id)}
+      />
     </>
+  );
+}
+
+// "Antecedentes familiares": los cargados para esta persona y, si es hijo/a,
+// los que le llegan de sus padres (el padre del administrador es su abuelo).
+function Antecedentes(props: {
+  persona: { id: string; nombre: string };
+  propios: Antecedente[];
+  heredados: ReturnType<typeof antecedentesDe>;
+}) {
+  return (
+    <section id="antecedentes" className="flex scroll-mt-4 flex-col gap-3 rounded-3xl bg-white p-6 shadow-sm">
+      <h2 className="text-lg font-extrabold text-[#1F6B63]">Antecedentes familiares</h2>
+      <p className="text-sm text-zinc-600">
+        Enfermedades de familiares de sangre. Algunas adelantan o suman controles; otras quedan anotadas para el médico.
+      </p>
+
+      {props.propios.length === 0 && props.heredados.length === 0 && (
+        <p className="text-sm text-zinc-500">Todavía no hay antecedentes cargados.</p>
+      )}
+
+      {props.propios.length > 0 && (
+        <ul className="flex flex-col gap-2">
+          {props.propios.map((a) => (
+            <li key={a.id} className="flex items-start justify-between gap-3 rounded-lg bg-[#F3F6F4] px-3 py-2 text-sm">
+              <span>
+                {describirAntecedente(a)}
+                {a.detalle && <span className="block text-zinc-500">{a.detalle}</span>}
+              </span>
+              <BotonBorrarAntecedente id={a.id} />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {props.heredados.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-semibold">Cargados en la ficha de sus padres</p>
+          <ul className="flex flex-col gap-2">
+            {props.heredados.map((a) => (
+              <li key={a.id} className="rounded-lg bg-[#F3F6F4] px-3 py-2 text-sm">
+                {describirAntecedente(a, parentescoDesdeHijo(a, a.ladoVisto))}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <FormularioAntecedente integranteId={props.persona.id} nombre={props.persona.nombre} />
+    </section>
   );
 }
 
